@@ -46,7 +46,7 @@ renderPage <- function(ui, showcase=0, testMode=FALSE) {
     # TODO: is this still needed?
     list(htmlDependency("json2", "2014.02.04", c(href="shared"), script = "json2-min.js")),
     list(jqueryDependency()),
-    shinyDependencies()
+    shinyDependencies
   )
 
   if (testMode) {
@@ -60,10 +60,9 @@ renderPage <- function(ui, showcase=0, testMode=FALSE) {
   enc2utf8(paste(collapse = "\n", html))
 }
 
-shinyDependencies <- function() {
+shinyDependencies <- tagFunction(function() {
   cssFile <- shinyCssFile()
 
-  # TODO: copy JS over to src dir
   version <- utils::packageVersion("shiny")
   list(
     htmlDependency(
@@ -79,16 +78,15 @@ shinyDependencies <- function() {
       script = if (getOption("shiny.minified", TRUE)) "shiny.min.js" else "shiny.js"
     )
   )
-}
+})
 
-shinyCssFile <- function() {
-  if (!useBsTheme()) {
+shinyCssFile <- function(theme = getShinyOption("bootstrapTheme")) {
+  if (!is_bs_theme(theme)) {
     return(list(src = c(href = "shared"), stylesheet = "shiny.css"))
   }
-
   scss_home <- system.file("www", "shared", "shiny_scss", package = "shiny")
   scss_files <- file.path(scss_home, c("bootstrap.scss", "shiny.scss"))
-  outFile <- bootstrapSass(lapply(scss_files, sass::sass_file), "shiny")
+  outFile <- bootstrapSass(lapply(scss_files, sass::sass_file), theme = theme, "shiny")
   list(src = c(file = dirname(outFile)), stylesheet = basename(outFile))
 }
 
